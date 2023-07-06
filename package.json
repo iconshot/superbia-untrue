@@ -1,0 +1,21 @@
+{
+  "name": "untrue-superbia",
+  "version": "1.1.0",
+  "description": "Integrate Untrue and Superbia.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iconshot/untrue-superbia.git"
+  },
+  "main": "index.js",
+  "keywords": [
+    "untrue",
+    "superbia"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "untrue": "^3.11.8"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
+  }
+}
