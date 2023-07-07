@@ -133,7 +133,7 @@ export class RequestContext extends SuperbiaContext {
 
       result.data = {
         ...endpointResult,
-        edges: [...result.data.edges, ...endpointResult.edges],
+        nodes: [...result.data.nodes, ...endpointResult.nodes],
       };
 
       if (endpointKey in interceptors && "data" in interceptors[endpointKey]) {
