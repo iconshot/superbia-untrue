@@ -3,7 +3,7 @@ import { Component, Node } from "untrue";
 import { v4 as uuid } from "uuid";
 
 export class RequestWrapper {
-  static wrapRequestComponent(Child, requestKeyExtractor = null) {
+  static wrapRequester(Child, requestKeyExtractor = null) {
     return class RequestComponent extends Component {
       constructor(props) {
         super(props);

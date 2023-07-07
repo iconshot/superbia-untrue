@@ -254,7 +254,7 @@ class PostList extends Component {
 
 // RequestWrapper will add the `requestKey` prop
 
-export default RequestWrapper.wrapRequestComponent(
+export default RequestWrapper.wrapRequester(
   Wrapper.wrapContext(PostList, AppRequestContext, (props) => {
     const { requestKey, userId } = props;
 
@@ -391,6 +391,8 @@ import { RequestWrapper } from "untrue-superbia";
 
 import AppRequestContext from "./AppRequestContext";
 
+import Content from "./Content";
+
 class PostList extends Component {
   constructor(props) {
     super(props);
@@ -423,7 +425,7 @@ class PostList extends Component {
   }
 }
 
-export default RequestWrapper.wrapRequestComponent(
+export default RequestWrapper.wrapRequester(
   Wrapper.wrapContext(PostList, AppRequestContext, (props) => {
     const { requestKey } = props;
 
