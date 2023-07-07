@@ -1,8 +1,8 @@
 import SuperbiaContext from "./SuperbiaContext";
 
 export class RequestContext extends SuperbiaContext {
-  constructor(client, nodeKeys) {
-    super(nodeKeys);
+  constructor(client, documentKeys) {
+    super(documentKeys);
 
     this.requests = {};
 
@@ -31,8 +31,8 @@ export class RequestContext extends SuperbiaContext {
     if (
       result !== null &&
       typeof result === "object" &&
-      this.nodeKeys.typename in result &&
-      result[this.nodeKeys.typename].endsWith("Pagination")
+      this.documentKeys.typename in result &&
+      result[this.documentKeys.typename].endsWith("Pagination")
     ) {
       return { loading: false, error: null, data: this.parseResult(result) };
     } else {
