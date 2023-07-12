@@ -1,15 +1,15 @@
 {
-  "name": "untrue-superbia",
+  "name": "@superbia/untrue",
   "version": "1.1.4",
-  "description": "Integrate Untrue and Superbia.",
+  "description": "Integrate Superbia and Untrue.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iconshot/untrue-superbia.git"
+    "url": "https://github.com/iconshot/superbia-untrue.git"
   },
   "main": "index.js",
   "keywords": [
-    "untrue",
-    "superbia"
+    "superbia",
+    "untrue"
   ],
   "license": "MIT",
   "peerDependencies": {

@@ -1,16 +1,16 @@
-# untrue-superbia
+# @superbia/untrue
 
-Integrate Untrue and Superbia.
+Integrate Superbia and Untrue.
 
 ## Installation
 
 ```
-npm i untrue-superbia
+npm i @superbia/untrue
 ```
 
 ## Get started
 
-We will use the Context API to integrate Untrue and Superbia. Two contexts are needed:
+We will use the Untrue's Context API to integrate Superbia and Untrue. Two contexts are needed:
 
 - `DocumentContext`: It will store all the documents returned by the Superbia requests and subscriptions, e.g., users, posts, comments, etc.
 - `RequestContext` It will store all the requests we do via a Superbia client.
@@ -83,7 +83,7 @@ Notice how for `lastPost` we only store the `id`. We do this to have a single so
 ### Creation
 
 ```js
-import { DocumentContext } from "untrue-superbia";
+import { DocumentContext } from "@superbia/untrue";
 
 import { client } from "./client";
 
@@ -192,7 +192,7 @@ this.requests = {
 ### Creation
 
 ```js
-import { RequestContext } from "untrue-superbia";
+import { RequestContext } from "@superbia/untrue";
 
 import { client } from "./client";
 
@@ -213,7 +213,7 @@ export default new AppRequestContext(client, {
 ```js
 import { Component, Node, Wrapper } from "untrue";
 
-import { RequestWrapper } from "untrue-superbia";
+import { RequestWrapper } from "@superbia/untrue";
 
 import Post from "./Post";
 
@@ -387,7 +387,7 @@ We will need two different components: one for the initial `onRequest` call and 
 ```js
 import { Component, Node, Wrapper } from "untrue";
 
-import { RequestWrapper } from "untrue-superbia";
+import { RequestWrapper } from "@superbia/untrue";
 
 import AppRequestContext from "./AppRequestContext";
 
@@ -506,7 +506,7 @@ export default Wrapper.wrapContext(Content, AppRequestContext, (props) => {
 `RequestWrapper` exposes a method `wrapRequester`. This method will add a `requestKey` prop to the component.
 
 ```js
-import { RequestWrapper } from "untrue-superbia";
+import { RequestWrapper } from "@superbia/untrue";
 
 function Child({ requestKey }) {
   // ...
