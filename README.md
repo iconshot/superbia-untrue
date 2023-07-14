@@ -45,7 +45,6 @@ If we receive some client data like:
     "_typename": "User",
     "_id": "123",
     "name": "Jhon Doe",
-    "username": "jhondoe",
     "lastPost": {
       "_typename": "Post",
       "_id": "456",
@@ -64,7 +63,6 @@ this.documents = {
       _typename: "User",
       _id: "123",
       name: "Jhon Doe",
-      username: "jhondoe",
       lastPost: "456",
     },
   },
@@ -82,12 +80,16 @@ Notice how for `lastPost` we only store the `id`. We do this to have a single so
 
 ### Creation
 
+`AppDocumentContext.js`
+
 ```js
 import { DocumentContext } from "@superbia/untrue";
 
 import { client } from "./client";
 
 class AppDocumentContext extends DocumentContext {
+  // we'll have the documents in this.documents
+
   onFollow = (userId) => {
     const user = this.documents.User[userId]; // get the user
 
@@ -119,38 +121,35 @@ export default new AppDocumentContext(client, {
 
 ### Usage
 
+`User.js`
+
 ```js
 import { Node, Wrapper } from "untrue";
 
 import AppDocumentContext from "./AppDocumentContext";
 
-function User({ userId, name, username, following, onFollow, onUnfollow }) {
+function User({ userId, name, following, onFollow, onUnfollow }) {
   const onFollowUser = () => onFollow(userId);
   const onUnfollowUser = () => onUnfollow(userId);
 
   return [
     new Node("span", name),
-    new Node("span", `@${username}`),
-    new Node(
-      "button",
-      {
-        onclick: following ? onUnfollowUser : onFollowUser,
-      },
-      following ? "unfollow" : "follow"
-    ),
+    following
+      ? new Node("button", { onclick: onUnfollowUser }, "unfollow")
+      : new Node("button", { onclick: onFollowUser }, "follow"),
   ];
 }
 
 export default Wrapper.wrapContext(User, AppDocumentContext, (props) => {
-  const { userId } = props;
+  const { userId } = props; // we receive the userId as a prop
 
   const documents = AppDocumentContext.getDocuments(); // all the documents
 
-  const { name, username, following } = documents.User[userId]; // the desired user document
+  const { name, following } = documents.User[userId]; // the desired user document
 
   const { onFollow, onUnfollow } = AppDocumentContext; // context handlers
 
-  return { name, username, following, onFollow, onUnfollow }; // data the component needs
+  return { name, following, onFollow, onUnfollow }; // data the component needs
 });
 ```
 
@@ -165,7 +164,7 @@ Every `request` has 4 properties:
 - `data`: `Object`. Result of the request. `null` if the request hasn't been completed yet or an error was found.
 - `error`: `Error` object or `null`. It's an `Error` object if the request has been completed but there's an error in the request itself or in any endpoint.
 
-The next example assumes we have an endpoint `userPosts` that returns an array of `Post` documents.
+Let's say we have an endpoint `userPosts` that returns an array of `Post` documents:
 
 ```json
 {
@@ -176,20 +175,25 @@ The next example assumes we have an endpoint `userPosts` that returns an array o
 }
 ```
 
-Just as in `DocumentContext`, we won't store the entire documents but their IDs only.
+The `requests` inside `RequestContext` would be:
 
 ```js
 this.requests = {
-  someRequestKey: {
+  someUniqueRequestKey: {
     loading: false,
     done: true,
     error: null,
     data: { userPosts: ["123", "456"] },
   },
+  // more requests
 };
 ```
 
+Just as in `DocumentContext`, we won't store the entire documents but their IDs only.
+
 ### Creation
+
+`AppRequestContext.js`
 
 ```js
 import { RequestContext } from "@superbia/untrue";
@@ -210,10 +214,14 @@ export default new AppRequestContext(client, {
 
 ### Usage
 
+`PostList.js`
+
 ```js
 import { Component, Node, Wrapper } from "untrue";
 
 import { RequestWrapper } from "@superbia/untrue";
+
+import AppRequestContext from "./AppRequestContext";
 
 import Post from "./Post";
 
@@ -225,12 +233,12 @@ class PostList extends Component {
   }
 
   handleMountRequest = () => {
-    const { requestKey, userId, onRequest } = this.props;
+    const { requestKey, onRequest } = this.props;
 
     // it will be requested as:
-    // client.request({ userPosts: { userId } })
+    // client.request({ posts: null })
 
-    onRequest(requestKey, { userPosts: { userId } });
+    onRequest(requestKey, { posts: null });
   };
 
   render() {
@@ -256,7 +264,7 @@ class PostList extends Component {
 
 export default RequestWrapper.wrapRequester(
   Wrapper.wrapContext(PostList, AppRequestContext, (props) => {
-    const { requestKey, userId } = props;
+    const { requestKey } = props;
 
     const requests = AppRequestContext.getRequests(); // all the requests
 
@@ -269,13 +277,35 @@ export default RequestWrapper.wrapRequester(
       data = null,
     } = requests?.[requestKey] ?? {};
 
-    const postIds = data !== null ? data.userPosts : [];
+    const postIds = data !== null ? data.posts : [];
 
     const { onRequest } = AppRequestContext; // context handler
 
     return { loading, done, error, postIds, onRequest }; // data the component needs
   })
 );
+```
+
+`Post.js`
+
+```js
+import { Node, Wrapper } from "untrue";
+
+import AppDocumentContext from "./AppDocumentContext";
+
+function Post({ text }) {
+  return new Node("div", text);
+}
+
+export default Wrapper.wrapContext(Post, AppDocumentContext, (props) => {
+  const { postId } = props;
+
+  const documents = AppDocumentContext.getDocuments();
+
+  const { text } = documents.Post[postId];
+
+  return { text };
+});
 ```
 
 ### Intercepting requests
@@ -323,12 +353,12 @@ class AppRequestContext extends RequestContext {
 }
 ```
 
-Then in the Component, we call:
+Then in the component, we call the handler:
 
 ```js
-const { postId } = this.props;
-
-onRequest(null, { likePost: { postId } });
+const onLike = () => {
+  onRequest(null, { likePost: { postId } }); // postId comes from props
+};
 ```
 
 ### Paginated requests
@@ -382,7 +412,7 @@ The rules of documents will be applied here, so every `node` will be stored as a
 
 We will need two different components: one for the initial `onRequest` call and another one for the subsequent `onLoad` calls.
 
-`PostList.js`
+`PaginatedPostList.js`
 
 ```js
 import { Component, Node, Wrapper } from "untrue";
@@ -393,7 +423,7 @@ import AppRequestContext from "./AppRequestContext";
 
 import Content from "./Content";
 
-class PostList extends Component {
+class PaginatedPostList extends Component {
   constructor(props) {
     super(props);
 
@@ -401,13 +431,13 @@ class PostList extends Component {
   }
 
   handleMountRequest = () => {
-    const { requestKey, userId, onRequest } = this.props;
+    const { requestKey, onRequest } = this.props;
 
-    onRequest(requestKey, { userPosts: { userId, limit: 20 } });
+    onRequest(requestKey, { posts: { limit: 2 } });
   };
 
   render() {
-    const { requestKey, userId, loading, done, error } = this.props;
+    const { requestKey, loading, done, error } = this.props;
 
     if (loading) {
       return new Node("span", "Loading...");
@@ -418,7 +448,7 @@ class PostList extends Component {
     }
 
     if (done) {
-      return new Node(Content, { requestKey, userId }); // pass requestKey and userId
+      return new Node(Content, { requestKey }); // pass requestKey as prop
     }
 
     return null;
@@ -426,7 +456,7 @@ class PostList extends Component {
 }
 
 export default RequestWrapper.wrapRequester(
-  Wrapper.wrapContext(PostList, AppRequestContext, (props) => {
+  Wrapper.wrapContext(PaginatedPostList, AppRequestContext, (props) => {
     const { requestKey } = props;
 
     const requests = AppRequestContext.getRequests(); // all the requests
@@ -455,7 +485,6 @@ import Post from "./Post";
 
 function Content({
   requestKey,
-  userId,
   loading,
   error,
   postIds,
@@ -464,9 +493,7 @@ function Content({
   onLoad,
 }) {
   const onLoadNext = () => {
-    onLoad(requestKey, {
-      userPosts: { userId, limit: 20, cursor: nextPageCursor },
-    });
+    onLoad(requestKey, { posts: { limit: 2, cursor: nextPageCursor } });
   };
 
   return [
@@ -493,7 +520,7 @@ export default Wrapper.wrapContext(Content, AppRequestContext, (props) => {
       nodes: postIds, // renaming for convenience
       pageInfo: { hasNextPage, nextPageCursor },
     },
-  } = requests[requestKey].data.userPosts; // the desired request's data
+  } = requests[requestKey].data.posts; // the desired request's data
 
   const { onLoad } = AppRequestContext; // context handler
 
