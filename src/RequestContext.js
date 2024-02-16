@@ -1,8 +1,8 @@
 import SuperbiaContext from "./SuperbiaContext";
 
 export class RequestContext extends SuperbiaContext {
-  constructor(client, documentKeys) {
-    super(documentKeys);
+  constructor(client, id) {
+    super(id);
 
     this.requests = {};
 
@@ -31,8 +31,8 @@ export class RequestContext extends SuperbiaContext {
     if (
       result !== null &&
       typeof result === "object" &&
-      this.documentKeys.typename in result &&
-      result[this.documentKeys.typename].endsWith("Pagination")
+      this.keys.typename in result &&
+      result[this.keys.typename].endsWith("Pagination")
     ) {
       return { loading: false, error: null, data: this.parseResult(result) };
     } else {
@@ -40,7 +40,7 @@ export class RequestContext extends SuperbiaContext {
     }
   }
 
-  onRequest = async (key, endpoints, payload = null) => {
+  async request(key, endpoints, payload = null) {
     key = key !== null && key !== undefined ? key : Date.now().toString();
 
     this.requests[key] = {
@@ -104,9 +104,9 @@ export class RequestContext extends SuperbiaContext {
 
       this.update();
     }
-  };
+  }
 
-  onLoad = async (key, endpoints, payload = null) => {
+  async load(key, endpoints, payload = null) {
     const interceptors = this.intercept();
 
     const endpointKey = Object.keys(endpoints)[0];
@@ -151,5 +151,5 @@ export class RequestContext extends SuperbiaContext {
 
       this.update();
     }
-  };
+  }
 }

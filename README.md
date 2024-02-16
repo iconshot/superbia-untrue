@@ -373,11 +373,8 @@ To implement paginated requests the server must return a Pagination object.
       { "_typename": "Post", "_id": "123", "text": "Hello world" },
       { "_typename": "Post", "_id": "456", "text": "Lorem ipsum" }
     ],
-    "pageInfo": {
-      "_typename": "PaginationPageInfo",
-      "hasNextPage": true,
-      "nextPageCursor": "789"
-    }
+    "hasNextPage": true,
+    "nextPageCursor": "789"
   }
 }
 ```
@@ -388,7 +385,7 @@ To implement paginated requests the server must return a Pagination object.
 this.requests = {
   someRequestKey: {
     loading: false,
-    done: false,
+    done: true,
     error: null,
     data: {
       userPosts: {
@@ -396,7 +393,8 @@ this.requests = {
         error: null,
         data: {
           nodes: ["123", "456"],
-          pageInfo: { hasNextPage: true, nextPageCursor: "789" },
+          hasNextPage: true,
+          nextPageCursor: "789",
         },
       },
     },
@@ -518,7 +516,8 @@ export default Wrapper.wrapContext(Content, AppRequestContext, (props) => {
     error,
     data: {
       nodes: postIds, // renaming for convenience
-      pageInfo: { hasNextPage, nextPageCursor },
+      hasNextPage,
+      nextPageCursor,
     },
   } = requests[requestKey].data.posts; // the desired request's data
 

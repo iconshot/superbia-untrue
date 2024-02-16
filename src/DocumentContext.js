@@ -1,22 +1,17 @@
 import SuperbiaContext from "./SuperbiaContext";
 
 export class DocumentContext extends SuperbiaContext {
-  constructor(client, documentKeys) {
-    super(documentKeys);
+  constructor(client, id) {
+    super(id);
 
     this.documents = {};
 
-    client
-      .on("request", (endpoints, emitter) => {
-        emitter.on("data", (data) => {
-          this.onData(data);
-        });
-      })
-      .on("subscribe", (endpoint, emitter) => {
-        emitter.on("data", (data) => {
-          this.onData(data);
-        });
-      });
+    const listener = (endpoints, emitter) => {
+      emitter.on("data", (data) => this.data(data));
+    };
+
+    client.on("request", listener);
+    client.on("subscribe", listener);
   }
 
   // default persistence
@@ -33,7 +28,7 @@ export class DocumentContext extends SuperbiaContext {
     return this.documents;
   }
 
-  onData(data) {
+  data(data) {
     const newData = {};
 
     Object.values(data).forEach((result) => {

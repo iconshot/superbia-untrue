@@ -1,10 +1,10 @@
 import { Context } from "untrue";
 
 class SuperbiaContext extends Context {
-  constructor(documentKeys) {
+  constructor(id = "id") {
     super();
 
-    this.documentKeys = documentKeys;
+    this.keys = { id, typename: "_typename" };
   }
 
   parseResult(result, data = {}) {
@@ -13,7 +13,7 @@ class SuperbiaContext extends Context {
     }
 
     if (Array.isArray(result)) {
-      return result.map((item) => this.parseResult(item, data));
+      return result.map((element) => this.parseResult(element, data));
     }
 
     if (typeof result === "object") {
@@ -23,15 +23,14 @@ class SuperbiaContext extends Context {
         newResult[key] = this.parseResult(result[key], data);
       }
 
-      const isDocument =
-        this.documentKeys.id in result && this.documentKeys.typename in result;
+      const isDocument = this.keys.id in result && this.keys.typename in result;
 
       if (!isDocument) {
         return newResult;
       }
 
-      const id = result[this.documentKeys.id];
-      const typename = result[this.documentKeys.typename];
+      const id = result[this.keys.id];
+      const typename = result[this.keys.typename];
 
       if (!(typename in data)) {
         data[typename] = {};
@@ -39,7 +38,7 @@ class SuperbiaContext extends Context {
 
       data[typename][id] = newResult;
 
-      return result[this.documentKeys.id];
+      return result[this.keys.id];
     }
 
     return result;
