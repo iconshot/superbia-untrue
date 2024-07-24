@@ -1,4 +1,4 @@
-import { Component, Node } from "untrue";
+import $, { Component } from "untrue";
 
 import { v4 as uuid } from "uuid";
 
@@ -28,11 +28,7 @@ export class RequestWrapper {
       render() {
         const { children, ...props } = this.props;
 
-        return new Node(
-          Child,
-          { ...props, requestKey: this.requestKey },
-          children
-        );
+        return $(Child, { ...props, requestKey: this.requestKey }, children);
       }
     };
   }
