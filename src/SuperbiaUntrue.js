@@ -1,8 +1,28 @@
-import $, { Component } from "untrue";
+import $, { Component, Hook } from "untrue";
 
 import { v4 as uuid } from "uuid";
 
-export class RequestWrapper {
+export default class SuperbiaUntrue {
+  static useRequestKey(requestKeyExtractor = null) {
+    return Hook.useMemo(() => {
+      let key = null;
+
+      if (requestKeyExtractor !== null) {
+        if (typeof requestKeyExtractor === "function") {
+          key = requestKeyExtractor();
+        } else {
+          key = requestKeyExtractor;
+        }
+      }
+
+      if (key === null) {
+        key = uuid();
+      }
+
+      return key;
+    });
+  }
+
   static wrapRequester(Child, requestKeyExtractor = null) {
     return class RequestComponent extends Component {
       constructor(props) {
