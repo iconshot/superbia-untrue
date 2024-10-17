@@ -1,21 +1,30 @@
 {
   "name": "@superbia/untrue",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "Integrate Superbia and Untrue.",
   "repository": {
     "type": "git",
     "url": "https://github.com/iconshot/superbia-untrue.git"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
+    "prepare": "npm run build"
+  },
   "keywords": [
     "superbia",
     "untrue"
   ],
   "license": "MIT",
   "peerDependencies": {
-    "untrue": "^5.7.2"
+    "untrue": "^5.8.0",
+    "@superbia/client": "^2.0.8"
   },
   "dependencies": {
     "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
   }
 }
