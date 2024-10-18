@@ -20,15 +20,15 @@ export default class Api<
   N extends EndpointRecord = {},
   O extends string = "id"
 > {
-  public readonly documents: DocumentContext<K, M>;
+  public readonly documents: DocumentContext<K, M, O>;
   public readonly requests: RequestContext<M, O>;
 
   constructor(public readonly client: Client<M, N>, idKey: string = "id") {
-    this.documents = new DocumentContext<K, M>(client, idKey);
+    this.documents = new DocumentContext<K, M, O>(client, idKey);
     this.requests = new RequestContext<M, O>(client, idKey);
   }
 
-  public useDocuments<W>(selector: (documents: Documents<K>) => W): W {
+  public useDocuments<W>(selector: (documents: Documents<K, O>) => W): W {
     return Hook.useContext(
       this.documents,
       (): W => selector(this.documents.data)

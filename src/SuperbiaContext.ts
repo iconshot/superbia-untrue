@@ -2,23 +2,19 @@ import { Context } from "untrue";
 
 import { Client, EndpointRecord } from "@superbia/client";
 
-type IdObject<U extends string> = {
-  [K in U]: string;
+type IdObject<O extends string> = {
+  [K in O]: string;
 };
 
-export type ParsedResult<T, U extends string = "id"> = T extends IdObject<U>
+export type ParsedResult<T, O extends string = "id"> = T extends
+  | string
+  | number
+  | boolean
+  | null
+  ? T
+  : T extends IdObject<O>
   ? string
-  : T extends IdObject<U> | null
-  ? string | null
-  : T extends IdObject<U>[]
-  ? string[]
-  : T extends (IdObject<U> | null)[]
-  ? (string | null)[]
-  : T extends null
-  ? null
-  : T extends object
-  ? { [K in keyof T]: ParsedResult<T[K], U> }
-  : T;
+  : { [K in keyof T]: ParsedResult<T[K], O> };
 
 export type DocumentSchema = Record<string, any>;
 

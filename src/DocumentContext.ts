@@ -15,19 +15,20 @@ import {
   DocumentData,
 } from "./SuperbiaContext";
 
-export type Document<T extends DocumentSchema> = {
-  [K in keyof T]: ParsedResult<T[K]>;
+export type Document<T extends DocumentSchema, O extends string = "id"> = {
+  [K in keyof T]: ParsedResult<T[K], O>;
 };
 
-export type Documents<T extends DocumentSchemaRecord> = {
-  [K in keyof T]: Record<string, Result<Document<T[K]>>>;
+export type Documents<T extends DocumentSchemaRecord, O extends string> = {
+  [K in keyof T]: Record<string, Result<Document<T[K], O>>>;
 };
 
 export class DocumentContext<
   K extends DocumentSchemaRecord,
-  M extends EndpointRecord
+  M extends EndpointRecord,
+  O extends string
 > extends SuperbiaContext<M> {
-  public data: Documents<K> = {} as Documents<K>;
+  public data: Documents<K, O> = {} as Documents<K, O>;
 
   constructor(client: Client<M, any>, idKey: string) {
     super(client, idKey);
