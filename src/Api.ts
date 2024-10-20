@@ -1,4 +1,4 @@
-import { Context, Hook } from "untrue";
+import { Context, State, Hook } from "untrue";
 
 import { v4 as uuid } from "uuid";
 
@@ -18,8 +18,9 @@ export default class Api<
   K extends DocumentSchemaRecord,
   M extends EndpointRecord,
   N extends EndpointRecord = {},
-  O extends string = "id"
-> extends Context {
+  O extends string = "id",
+  P = any
+> extends Context<State, P> {
   public readonly documents: DocumentContext<K, M, O>;
   public readonly requests: RequestContext<M, O>;
 
