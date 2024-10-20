@@ -19,7 +19,10 @@ export type Document<T extends DocumentSchema, O extends string = "id"> = {
   [K in keyof T]: ParsedResult<T[K], O>;
 };
 
-export type Documents<T extends DocumentSchemaRecord, O extends string> = {
+export type Documents<
+  T extends DocumentSchemaRecord,
+  O extends string = "id"
+> = {
   [K in keyof T]: Record<string, Result<Document<T[K], O>>>;
 };
 

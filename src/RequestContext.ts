@@ -7,13 +7,13 @@ import {
 
 import { ParsedResult, SuperbiaContext } from "./SuperbiaContext";
 
-export interface PaginationResult<T, O extends string> {
+export interface PaginationResult<T, O extends string = "id"> {
   loading: boolean;
   result: ParsedResult<T, O>;
   error: Error | null;
 }
 
-export type Request<T extends ResponseResult, O extends string> = {
+export type Request<T extends ResponseResult, O extends string = "id"> = {
   loading: boolean;
   done: boolean;
   result:
@@ -26,10 +26,10 @@ export type Request<T extends ResponseResult, O extends string> = {
   error: Error | null;
 };
 
-export type Requests<T extends EndpointRecord, O extends string> = Record<
-  string,
-  Request<{ [K in keyof T]: Result<T[K]["result"]> }, O>
->;
+export type Requests<
+  T extends EndpointRecord,
+  O extends string = "id"
+> = Record<string, Request<{ [K in keyof T]: Result<T[K]["result"]> }, O>>;
 
 export class RequestContext<
   M extends EndpointRecord,
