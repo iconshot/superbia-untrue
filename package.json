@@ -1,6 +1,6 @@
 {
   "name": "@superbia/untrue",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Integrate Superbia and Untrue.",
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
   "license": "MIT",
   "peerDependencies": {
     "@superbia/client": "^2.0.10",
-    "untrue": "^5.8.0"
+    "untrue": "^5.9.0"
   },
   "dependencies": {
     "uuid": "^10.0.0"

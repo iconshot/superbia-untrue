@@ -37,14 +37,6 @@ export class RequestContext<
 > extends SuperbiaContext<M> {
   public data: Requests<M, O> = {} as Requests<M, O>;
 
-  public hydrate(data: any): void {
-    this.data = data;
-  }
-
-  public persist(): any {
-    return this.data;
-  }
-
   public parseResult(result: ResponseResult): ResponseResult {
     const tmpResult: ResponseResult = {};
 

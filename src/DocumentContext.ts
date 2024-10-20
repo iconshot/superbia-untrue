@@ -43,14 +43,6 @@ export class DocumentContext<
     client.on("subscribe", listener);
   }
 
-  public hydrate(data: any): void {
-    this.data = data;
-  }
-
-  public persist(): any {
-    return this.data;
-  }
-
   private handleResult(result: ResponseResult): void {
     const data: DocumentData = {};
 

@@ -1,4 +1,4 @@
-import { Hook } from "untrue";
+import { Context, Hook } from "untrue";
 
 import { v4 as uuid } from "uuid";
 
@@ -19,13 +19,22 @@ export default class Api<
   M extends EndpointRecord,
   N extends EndpointRecord = {},
   O extends string = "id"
-> {
+> extends Context {
   public readonly documents: DocumentContext<K, M, O>;
   public readonly requests: RequestContext<M, O>;
 
   constructor(public readonly client: Client<M, N>, idKey: string = "id") {
+    super();
+
     this.documents = new DocumentContext<K, M, O>(client, idKey);
     this.requests = new RequestContext<M, O>(client, idKey);
+
+    const listener = (): void => {
+      this.update();
+    };
+
+    this.documents.on("update", listener);
+    this.requests.on("update", listener);
   }
 
   public useDocuments<W>(selector: (documents: Documents<K, O>) => W): W {
@@ -43,14 +52,12 @@ export default class Api<
     const value = Hook.useContext(this.requests, (): W => {
       let request = (this.requests.data[key] ?? null) as Request<Y, O> | null;
 
-      if (request === null) {
-        request = {
-          loading: false,
-          done: false,
-          result: null,
-          error: null,
-        };
-      }
+      request ??= {
+        loading: false,
+        done: false,
+        result: null,
+        error: null,
+      };
 
       return selector(request);
     });

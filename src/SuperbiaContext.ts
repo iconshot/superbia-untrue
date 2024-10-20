@@ -39,16 +39,16 @@ export class SuperbiaContext<M extends EndpointRecord> extends Context {
     }
 
     if (typeof result === "object") {
-      const newResult = {};
+      const tmpResult = {};
 
       for (const key in result) {
-        newResult[key] = this.parseResultValue(result[key], data);
+        tmpResult[key] = this.parseResultValue(result[key], data);
       }
 
       const isDocument = this.idKey in result && this.typenameKey in result;
 
       if (!isDocument) {
-        return newResult;
+        return tmpResult;
       }
 
       const id = result[this.idKey];
@@ -58,7 +58,7 @@ export class SuperbiaContext<M extends EndpointRecord> extends Context {
         data[typename] = {};
       }
 
-      data[typename][id] = newResult;
+      data[typename][id] = tmpResult;
 
       return result[this.idKey];
     }
