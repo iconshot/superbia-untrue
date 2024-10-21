@@ -22,19 +22,19 @@ export type Document<T extends DocumentSchema, O extends string = "id"> = {
 export type Documents<
   T extends DocumentSchemaRecord,
   O extends string = "id"
-> = {
+> = Partial<{
   [K in keyof T]: Record<string, Result<Document<T[K], O>>>;
-};
+}>;
 
 export class DocumentContext<
   K extends DocumentSchemaRecord,
   M extends EndpointRecord,
   O extends string
-> extends SuperbiaContext<M> {
+> extends SuperbiaContext {
   public data: Documents<K, O> = {} as Documents<K, O>;
 
   constructor(client: Client<M, any>, idKey: string) {
-    super(client, idKey);
+    super(idKey);
 
     const listener = (endpoints: EndpointInput, emitter: Emitter): void => {
       emitter.on("result", (result): void => {

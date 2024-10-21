@@ -34,7 +34,7 @@ export type Requests<
 export class RequestContext<
   M extends EndpointRecord,
   O extends string
-> extends SuperbiaContext<M> {
+> extends SuperbiaContext {
   public data: Requests<M, O> = {} as Requests<M, O>;
 
   public parseResult(result: ResponseResult): ResponseResult {

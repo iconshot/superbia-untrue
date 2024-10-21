@@ -28,7 +28,7 @@ export default class Api<
     super();
 
     this.documents = new DocumentContext<K, M, O>(client, idKey);
-    this.requests = new RequestContext<M, O>(client, idKey);
+    this.requests = new RequestContext<M, O>(idKey);
 
     const listener = (): void => {
       this.update();

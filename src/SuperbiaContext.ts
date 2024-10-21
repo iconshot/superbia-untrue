@@ -1,7 +1,5 @@
 import { Context } from "untrue";
 
-import { Client, EndpointRecord } from "@superbia/client";
-
 type IdObject<O extends string> = {
   [K in O]: string;
 };
@@ -22,10 +20,10 @@ export type DocumentSchemaRecord = Record<string, DocumentSchema>;
 
 export type DocumentData = Record<string, Record<string, DocumentSchema>>;
 
-export class SuperbiaContext<M extends EndpointRecord> extends Context {
+export class SuperbiaContext extends Context {
   protected typenameKey: string = "_typename";
 
-  constructor(protected client: Client<M, any>, protected idKey: string) {
+  constructor(protected idKey: string) {
     super();
   }
 
