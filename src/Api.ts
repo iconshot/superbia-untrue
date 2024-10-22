@@ -6,7 +6,6 @@ import {
   Client,
   EndpointRecord,
   Pagination,
-  Response,
   ResponseResult,
 } from "@superbia/client";
 
@@ -48,7 +47,7 @@ export default class Api<
   public useRequest<Y extends ResponseResult, W, X extends any[] = any[]>(
     key: string,
     selector: (request: Request<Y, O>) => W,
-    requester?: (...args: X) => Promise<Response<Y>>
+    requester?: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
       let request = (this.requests.data[key] ?? null) as Request<Y, O> | null;
@@ -78,9 +77,7 @@ export default class Api<
       this.requests.update();
 
       try {
-        const response = await requester(...args);
-
-        const result = response.result();
+        const result = await requester(...args);
 
         const parsedResult = this.requests.parseResult(result);
 
@@ -110,7 +107,7 @@ export default class Api<
   public useLoad<Y extends ResponseResult, W, X extends any[]>(
     key: string,
     selector: (request: Request<Y, O>) => W,
-    loader: (...args: X) => Promise<Response<Y>>
+    loader: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
       const request = this.requests.data[key] as Request<Y, O>;
@@ -142,9 +139,7 @@ export default class Api<
       tmpPagination = tmpPagination!;
 
       try {
-        const response = await loader(...args);
-
-        const result = response.result();
+        const result = await loader(...args);
 
         const parsedResult = this.requests.parseResult(result);
 

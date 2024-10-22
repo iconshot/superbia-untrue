@@ -29,7 +29,10 @@ export type Request<T extends ResponseResult, O extends string = "id"> = {
 export type Requests<
   T extends EndpointRecord,
   O extends string = "id"
-> = Record<string, Request<{ [K in keyof T]: Result<T[K]["result"]> }, O>>;
+> = Record<
+  string,
+  Request<Partial<{ [K in keyof T]: Result<T[K]["result"]> }>, O>
+>;
 
 export class RequestContext<
   M extends EndpointRecord,

@@ -36,7 +36,10 @@ export class DocumentContext<
   constructor(client: Client<M, any>, idKey: string) {
     super(idKey);
 
-    const listener = (endpoints: EndpointInput, emitter: Emitter): void => {
+    const listener = (
+      endpoints: EndpointInput,
+      emitter: Emitter<ResponseResult>
+    ): void => {
       emitter.on("result", (result): void => {
         this.handleResult(result);
       });
