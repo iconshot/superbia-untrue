@@ -13,16 +13,16 @@ export interface PaginationResult<T, O extends string = "id"> {
   error: Error | null;
 }
 
-export type Request<T extends ResponseResult, O extends string = "id"> = {
+export type RequestResult<T extends ResponseResult, O extends string = "id"> = {
+  [K in keyof T]: T[K] extends Pagination<any>
+    ? PaginationResult<T[K], O>
+    : ParsedResult<T[K], O>;
+};
+
+export type Request<T extends ResponseResult> = {
   loading: boolean;
   done: boolean;
-  result:
-    | {
-        [K in keyof T]: T[K] extends Pagination<any>
-          ? PaginationResult<T[K], O>
-          : ParsedResult<T[K], O>;
-      }
-    | null;
+  result: T | null;
   error: Error | null;
 };
 
@@ -31,7 +31,7 @@ export type Requests<
   O extends string = "id"
 > = Record<
   string,
-  Request<Partial<{ [K in keyof T]: Result<T[K]["result"]> }>, O>
+  Request<Partial<RequestResult<{ [K in keyof T]: Result<T[K]["result"]> }, O>>>
 >;
 
 export class RequestContext<

@@ -11,7 +11,12 @@ import {
 
 import { DocumentSchemaRecord } from "./SuperbiaContext";
 import { DocumentContext, Documents } from "./DocumentContext";
-import { RequestContext, Request, PaginationResult } from "./RequestContext";
+import {
+  RequestContext,
+  Request,
+  PaginationResult,
+  RequestResult,
+} from "./RequestContext";
 
 export default class Api<
   K extends DocumentSchemaRecord,
@@ -46,11 +51,13 @@ export default class Api<
 
   public useRequest<Y extends ResponseResult, W, X extends any[] = any[]>(
     key: string,
-    selector: (request: Request<Y, O>) => W,
+    selector: (request: Request<RequestResult<Y, O>>) => W,
     requester?: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
-      let request = (this.requests.data[key] ?? null) as Request<Y, O> | null;
+      let request = (this.requests.data[key] ?? null) as Request<
+        RequestResult<Y, O>
+      > | null;
 
       request ??= {
         loading: false,
@@ -106,17 +113,17 @@ export default class Api<
 
   public useLoad<Y extends ResponseResult, W, X extends any[]>(
     key: string,
-    selector: (request: Request<Y, O>) => W,
+    selector: (request: Request<RequestResult<Y, O>>) => W,
     loader: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
-      const request = this.requests.data[key] as Request<Y, O>;
+      const request = this.requests.data[key] as Request<RequestResult<Y, O>>;
 
       return selector(request);
     });
 
     const load = async (...args: X): Promise<void> => {
-      const request: Request<ResponseResult, string> = this.requests.data[key];
+      const request: Request<ResponseResult> = this.requests.data[key];
 
       const tmpResult = request.result!;
 
