@@ -49,7 +49,7 @@ export class DocumentContext<
     client.on("subscribe", listener);
   }
 
-  private handleResult(result: ResponseResult): void {
+  public handleResult(result: ResponseResult): void {
     const data: DocumentData = {};
 
     for (const tmpResult of Object.values(result)) {
