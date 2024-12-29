@@ -10,7 +10,9 @@ import {
 } from "@superbia/client";
 
 import { DocumentSchemaRecord } from "./SuperbiaContext";
+
 import { DocumentContext, Documents } from "./DocumentContext";
+
 import {
   RequestContext,
   Request,
@@ -59,6 +61,8 @@ export default class Api<
         RequestResult<Y, O>
       > | null;
 
+      // dummy request
+
       request ??= {
         loading: false,
         done: false,
@@ -74,12 +78,14 @@ export default class Api<
         throw new Error("Requester not defined in useRequest.");
       }
 
-      this.requests.data[key] = {
+      const request: Request<any> = {
         loading: true,
         done: false,
         result: null,
         error: null,
       };
+
+      this.requests.data[key] = request;
 
       this.requests.update();
 
@@ -88,21 +94,17 @@ export default class Api<
 
         const parsedResult = this.requests.parseResult(result);
 
-        this.requests.data[key] = {
-          loading: false,
-          done: true,
-          result: parsedResult as any,
-          error: null,
-        };
+        request.loading = false;
+        request.done = true;
+        request.result = parsedResult;
+        request.error = null;
 
         this.requests.update();
       } catch (error) {
-        this.requests.data[key] = {
-          loading: false,
-          done: false,
-          result: null,
-          error,
-        };
+        request.loading = false;
+        request.done = false;
+        request.result = null;
+        request.error = error;
 
         this.requests.update();
       }
@@ -117,13 +119,35 @@ export default class Api<
     loader: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
-      const request = this.requests.data[key] as Request<RequestResult<Y, O>>;
+      let request = (this.requests.data[key] ?? null) as Request<
+        RequestResult<Y, O>
+      > | null;
+
+      request ??= {
+        loading: false,
+        done: false,
+        result: null,
+        error: null,
+      };
 
       return selector(request);
     });
 
     const load = async (...args: X): Promise<void> => {
-      const request: Request<ResponseResult> = this.requests.data[key];
+      const request = (this.requests.data[key] ??
+        null) as Request<ResponseResult> | null;
+
+      if (request === null) {
+        throw new Error("Request not initialized yet.");
+      }
+
+      if (request.loading) {
+        throw new Error('Request is in "loading" state.');
+      }
+
+      if (request.error !== null) {
+        throw new Error('Request is in "error" state.');
+      }
 
       const tmpResult = request.result!;
 
@@ -131,10 +155,43 @@ export default class Api<
 
       let endpointName: string;
 
-      this.client.once("request", (endpoints): void => {
-        endpointName = Object.keys(endpoints)[0];
+      let rethrow = false;
 
-        tmpPagination = tmpResult[endpointName];
+      this.client.once("request", (endpoints): void => {
+        const keys = Object.keys(endpoints);
+
+        /*
+      
+        any error found here will reject the entire client.request
+        before the request is actually sent to the server
+        
+        */
+
+        try {
+          if (keys.length === 0) {
+            throw new Error(`Argument "endpoints" can't be empty.`);
+          }
+
+          endpointName = keys[0];
+
+          tmpPagination = tmpResult[endpointName];
+
+          if (tmpPagination === undefined) {
+            throw new Error(
+              `Endpoint "${endpointName}" not in request result.`
+            );
+          }
+
+          if (!(tmpPagination instanceof PaginationResult)) {
+            throw new Error(
+              `Endpoint "${endpointName}" is not of Pagination type.`
+            );
+          }
+        } catch (error) {
+          rethrow = true;
+
+          throw error;
+        }
 
         tmpPagination.loading = true;
         tmpPagination.error = null;
@@ -163,10 +220,19 @@ export default class Api<
         tmpPagination.result.nextPageCursor =
           endpointResult.result.nextPageCursor;
 
-        tmpPagination.result.nodes.push(...endpointResult.result.nodes);
+        tmpPagination.result.nodes = [
+          ...tmpPagination.result.nodes,
+          ...endpointResult.result.nodes,
+        ];
 
         this.requests.update();
       } catch (error) {
+        // error comes from the once listener, treat it as early throw
+
+        if (rethrow) {
+          throw error;
+        }
+
         tmpPagination.loading = false;
         tmpPagination.error = error;
 

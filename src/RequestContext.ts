@@ -7,10 +7,27 @@ import {
 
 import { ParsedResult, SuperbiaContext } from "./SuperbiaContext";
 
-export interface PaginationResult<T, O extends string = "id"> {
-  loading: boolean;
-  result: ParsedResult<T, O>;
-  error: Error | null;
+export class PaginationResult<
+  T extends Pagination<any>,
+  O extends string = "id"
+> {
+  public loading: boolean;
+  public result: ParsedResult<T, O>;
+  public error: Error | null;
+
+  constructor({
+    loading,
+    result,
+    error,
+  }: {
+    loading: boolean;
+    result: ParsedResult<T, O>;
+    error: Error | null;
+  }) {
+    this.loading = loading;
+    this.result = result;
+    this.error = error;
+  }
 }
 
 export type RequestResult<T extends ResponseResult, O extends string = "id"> = {
@@ -54,11 +71,11 @@ export class RequestContext<
         this.typenameKey in endpointResult &&
         endpointResult[this.typenameKey].endsWith("Pagination")
       ) {
-        tmpEndpointResult = {
+        tmpEndpointResult = new PaginationResult<Pagination<any>, O>({
           loading: false,
           result: this.parseResultValue(endpointResult),
           error: null,
-        };
+        });
       } else {
         tmpEndpointResult = this.parseResultValue(endpointResult);
       }
