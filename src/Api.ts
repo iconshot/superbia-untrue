@@ -40,8 +40,8 @@ export default class Api<
       this.update();
     };
 
-    this.documents.on("immediateUpdate", listener);
-    this.requests.on("immediateUpdate", listener);
+    this.documents.on("update", listener);
+    this.requests.on("update", listener);
   }
 
   public useDocuments<W>(selector: (documents: Documents<K, O>) => W): W {
