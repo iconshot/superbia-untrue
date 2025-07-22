@@ -100,7 +100,7 @@ export default class Api<
         request.error = null;
 
         this.requests.update();
-      } catch (error) {
+      } catch (error: any) {
         request.loading = false;
         request.done = false;
         request.result = null;
@@ -226,7 +226,7 @@ export default class Api<
         ];
 
         this.requests.update();
-      } catch (error) {
+      } catch (error: any) {
         // error comes from the once listener, treat it as early throw
 
         if (rethrow) {

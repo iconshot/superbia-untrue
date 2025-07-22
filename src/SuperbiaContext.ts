@@ -37,7 +37,7 @@ export class SuperbiaContext extends Context {
     }
 
     if (typeof result === "object") {
-      const tmpResult = {};
+      const tmpResult: DocumentSchema = {};
 
       for (const key in result) {
         tmpResult[key] = this.parseResultValue(result[key], data);
