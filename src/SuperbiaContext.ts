@@ -1,66 +1,36 @@
 import { Context } from "untrue";
 
-type IdObject<O extends string> = {
+import { Document } from "@superbia/client";
+
+export type IdDocument<O extends string> = Document & {
   [K in O]: string;
 };
 
-export type ParsedResult<T, O extends string = "id"> = T extends
+export type IdDocumentRecord<O extends string> = Record<string, IdDocument<O>>;
+
+export type ParsedResult<O extends string, T> = T extends
   | string
   | number
   | boolean
   | null
   ? T
-  : T extends IdObject<O>
+  : T extends IdDocument<O>
   ? string
-  : { [K in keyof T]: ParsedResult<T[K], O> };
-
-export type DocumentSchema = Record<string, any>;
-
-export type DocumentSchemaRecord = Record<string, DocumentSchema>;
-
-export type DocumentData = Record<string, Record<string, DocumentSchema>>;
+  : { [K in keyof T]: ParsedResult<O, T[K]> };
 
 export class SuperbiaContext extends Context {
-  protected typenameKey: string = "_typename";
+  protected typenameKey: string = "__typename__";
 
   constructor(protected idKey: string) {
     super();
   }
 
-  public parseResultValue(result: any, data: DocumentData = {}): any {
-    if (result === null) {
-      return null;
-    }
-
-    if (Array.isArray(result)) {
-      return result.map((element): any => this.parseResultValue(element, data));
-    }
-
-    if (typeof result === "object") {
-      const tmpResult: DocumentSchema = {};
-
-      for (const key in result) {
-        tmpResult[key] = this.parseResultValue(result[key], data);
-      }
-
-      const isDocument = this.idKey in result && this.typenameKey in result;
-
-      if (!isDocument) {
-        return tmpResult;
-      }
-
-      const id = result[this.idKey];
-      const typename = result[this.typenameKey];
-
-      if (!(typename in data)) {
-        data[typename] = {};
-      }
-
-      data[typename][id] = tmpResult;
-
-      return result[this.idKey];
-    }
-
-    return result;
+  protected isIdDocument(value: Record<string, any>): boolean {
+    return (
+      this.idKey in value &&
+      this.typenameKey in value &&
+      typeof value[this.idKey] === "string" &&
+      typeof value[this.typenameKey] === "string"
+    );
   }
 }

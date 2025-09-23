@@ -9,32 +9,32 @@ import {
   ResponseResult,
 } from "@superbia/client";
 
-import { DocumentSchemaRecord } from "./SuperbiaContext";
-
-import { DocumentContext, Documents } from "./DocumentContext";
+import { DocumentContext, ApiDocuments } from "./DocumentContext";
 
 import {
   RequestContext,
-  Request,
+  ApiRequest,
   PaginationResult,
   RequestResult,
 } from "./RequestContext";
 
+import { IdDocumentRecord } from "./SuperbiaContext";
+
 export default class Api<
-  K extends DocumentSchemaRecord,
+  O extends string,
+  K extends IdDocumentRecord<O>,
   M extends EndpointRecord,
   N extends EndpointRecord = {},
-  O extends string = "id",
   P = any
 > extends Context<State, P> {
-  public readonly documents: DocumentContext<K, M, O>;
-  public readonly requests: RequestContext<M, O>;
+  public readonly documents: DocumentContext<O, K>;
+  public readonly requests: RequestContext<O, M>;
 
-  constructor(public readonly client: Client<M, N>, idKey: string = "id") {
+  constructor(public readonly client: Client<M, N>, idKey: string) {
     super();
 
-    this.documents = new DocumentContext<K, M, O>(client, idKey);
-    this.requests = new RequestContext<M, O>(idKey);
+    this.documents = new DocumentContext(client, idKey);
+    this.requests = new RequestContext(idKey);
 
     const listener = (): void => {
       this.update();
@@ -44,7 +44,7 @@ export default class Api<
     this.requests.on("update", listener);
   }
 
-  public useDocuments<W>(selector: (documents: Documents<K, O>) => W): W {
+  public useDocuments<W>(selector: (documents: ApiDocuments<O, K>) => W): W {
     return Hook.useContext(
       this.documents,
       (): W => selector(this.documents.data)
@@ -53,12 +53,12 @@ export default class Api<
 
   public useRequest<Y extends ResponseResult, W, X extends any[] = any[]>(
     key: string,
-    selector: (request: Request<RequestResult<Y, O>>) => W,
+    selector: (request: ApiRequest<RequestResult<O, Y>>) => W,
     requester?: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
-      let request = (this.requests.data[key] ?? null) as Request<
-        RequestResult<Y, O>
+      let request = (this.requests.data[key] ?? null) as ApiRequest<
+        RequestResult<O, Y>
       > | null;
 
       // dummy request
@@ -78,7 +78,7 @@ export default class Api<
         throw new Error("Requester not defined in useRequest.");
       }
 
-      const request: Request<any> = {
+      const request: ApiRequest<any> = {
         loading: true,
         done: false,
         result: null,
@@ -115,12 +115,12 @@ export default class Api<
 
   public useLoad<Y extends ResponseResult, W, X extends any[]>(
     key: string,
-    selector: (request: Request<RequestResult<Y, O>>) => W,
+    selector: (request: ApiRequest<RequestResult<O, Y>>) => W,
     loader: (...args: X) => Promise<Y>
   ): [W, (...args: X) => Promise<void>] {
     const value = Hook.useContext(this.requests, (): W => {
-      let request = (this.requests.data[key] ?? null) as Request<
-        RequestResult<Y, O>
+      let request = (this.requests.data[key] ?? null) as ApiRequest<
+        RequestResult<O, Y>
       > | null;
 
       request ??= {
@@ -135,7 +135,7 @@ export default class Api<
 
     const load = async (...args: X): Promise<void> => {
       const request = (this.requests.data[key] ??
-        null) as Request<ResponseResult> | null;
+        null) as ApiRequest<ResponseResult> | null;
 
       if (request === null) {
         throw new Error("Request not initialized yet.");
@@ -151,9 +151,9 @@ export default class Api<
 
       const tmpResult = request.result!;
 
-      let tmpPagination: PaginationResult<Pagination<any>, string>;
-
       let endpointName: string;
+
+      let tmpPagination: PaginationResult<string, Pagination<any>>;
 
       let rethrow = false;
 
@@ -187,7 +187,7 @@ export default class Api<
               `Endpoint "${endpointName}" is not of Pagination type.`
             );
           }
-        } catch (error) {
+        } catch (error: any) {
           rethrow = true;
 
           throw error;
@@ -208,8 +208,8 @@ export default class Api<
         const parsedResult = this.requests.parseResult(result);
 
         const endpointResult = parsedResult[endpointName] as PaginationResult<
-          Pagination<any>,
-          string
+          string,
+          Pagination<any>
         >;
 
         tmpPagination.loading = false;

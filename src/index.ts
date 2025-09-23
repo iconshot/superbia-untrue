@@ -1,10 +1,12 @@
 export { default } from "./Api";
 
 export { ParsedResult } from "./SuperbiaContext";
-export { Document, Documents } from "./DocumentContext";
+
+export { ApiDocument, ApiDocuments } from "./DocumentContext";
+
 export {
-  Request,
-  Requests,
+  ApiRequest,
+  ApiRequests,
   RequestResult,
   PaginationResult,
 } from "./RequestContext";

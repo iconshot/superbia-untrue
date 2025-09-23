@@ -7,13 +7,10 @@ import {
 
 import { ParsedResult, SuperbiaContext } from "./SuperbiaContext";
 
-export class PaginationResult<
-  T extends Pagination<any>,
-  O extends string = "id"
-> {
+export class PaginationResult<O extends string, T extends Pagination<any>> {
   public loading: boolean;
-  public result: ParsedResult<T, O>;
-  public error: Error | null;
+  public result: ParsedResult<O, T>;
+  public error: any;
 
   constructor({
     loading,
@@ -21,8 +18,8 @@ export class PaginationResult<
     error,
   }: {
     loading: boolean;
-    result: ParsedResult<T, O>;
-    error: Error | null;
+    result: ParsedResult<O, T>;
+    error: any;
   }) {
     this.loading = loading;
     this.result = result;
@@ -30,32 +27,31 @@ export class PaginationResult<
   }
 }
 
-export type RequestResult<T extends ResponseResult, O extends string = "id"> = {
+export type RequestResult<O extends string, T extends ResponseResult> = {
   [K in keyof T]: T[K] extends Pagination<any>
-    ? PaginationResult<T[K], O>
-    : ParsedResult<T[K], O>;
+    ? PaginationResult<O, T[K]>
+    : ParsedResult<O, T[K]>;
 };
 
-export type Request<T extends ResponseResult> = {
+export type ApiRequest<T extends ResponseResult> = {
   loading: boolean;
   done: boolean;
   result: T | null;
-  error: Error | null;
+  error: any;
 };
 
-export type Requests<
-  T extends EndpointRecord,
-  O extends string = "id"
-> = Record<
+export type ApiRequests<O extends string, T extends EndpointRecord> = Record<
   string,
-  Request<Partial<RequestResult<{ [K in keyof T]: Result<T[K]["result"]> }, O>>>
+  ApiRequest<
+    Partial<RequestResult<O, { [K in keyof T]: Result<T[K]["result"]> }>>
+  >
 >;
 
 export class RequestContext<
-  M extends EndpointRecord,
-  O extends string
+  O extends string,
+  M extends EndpointRecord
 > extends SuperbiaContext {
-  public data: Requests<M, O> = {} as Requests<M, O>;
+  public data: ApiRequests<O, M> = {} as ApiRequests<O, M>;
 
   public parseResult(result: ResponseResult): ResponseResult {
     const tmpResult: ResponseResult = {};
@@ -69,9 +65,9 @@ export class RequestContext<
         endpointResult !== null &&
         typeof endpointResult === "object" &&
         this.typenameKey in endpointResult &&
-        endpointResult[this.typenameKey].endsWith("Pagination")
+        endpointResult[this.typenameKey] === "__pagination__"
       ) {
-        tmpEndpointResult = new PaginationResult<Pagination<any>, O>({
+        tmpEndpointResult = new PaginationResult<O, Pagination<any>>({
           loading: false,
           result: this.parseResultValue(endpointResult),
           error: null,
@@ -84,5 +80,35 @@ export class RequestContext<
     }
 
     return tmpResult;
+  }
+
+  private parseResultValue(value: any): any {
+    if (value === null) {
+      return null;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((tmpValue): any => this.parseResultValue(tmpValue));
+    }
+
+    if (typeof value === "object") {
+      const isIdDocument = this.isIdDocument(value);
+
+      if (isIdDocument) {
+        const id = value[this.idKey];
+
+        return id;
+      }
+
+      const tmpValue: Record<string, any> = {};
+
+      for (const key in value) {
+        tmpValue[key] = this.parseResultValue(value[key]);
+      }
+
+      return tmpValue;
+    }
+
+    return value;
   }
 }

@@ -4,36 +4,35 @@ import {
   Result,
   EndpointInput,
   ResponseResult,
-  EndpointRecord,
 } from "@superbia/client";
 
 import {
+  IdDocument,
+  IdDocumentRecord,
   ParsedResult,
   SuperbiaContext,
-  DocumentSchema,
-  DocumentSchemaRecord,
-  DocumentData,
 } from "./SuperbiaContext";
 
-export type Document<T extends DocumentSchema, O extends string = "id"> = {
-  [K in keyof T]: ParsedResult<T[K], O>;
+export type ApiDocument<O extends string, T extends IdDocument<O>> = {
+  [K in keyof T]: ParsedResult<O, T[K]>;
 };
 
-export type Documents<
-  T extends DocumentSchemaRecord,
-  O extends string = "id"
+export type ApiDocuments<
+  O extends string,
+  T extends IdDocumentRecord<O>
 > = Partial<{
-  [K in keyof T]: Record<string, Result<Document<T[K], O>>>;
+  [K in keyof T]: Record<string, Result<ApiDocument<O, T[K]>>>;
 }>;
 
 export class DocumentContext<
-  K extends DocumentSchemaRecord,
-  M extends EndpointRecord,
-  O extends string
+  O extends string,
+  K extends IdDocumentRecord<O>
 > extends SuperbiaContext {
-  public data: Documents<K, O> = {} as Documents<K, O>;
+  public data: ApiDocuments<O, K> = {} as ApiDocuments<O, K>;
 
-  constructor(client: Client<M, any>, idKey: string) {
+  private updateAfterResultLoop: boolean = false;
+
+  constructor(client: Client<any, any>, idKey: string) {
     super(idKey);
 
     const listener = (
@@ -50,32 +49,60 @@ export class DocumentContext<
   }
 
   public handleResult(result: ResponseResult): void {
-    const data: DocumentData = {};
+    const endpointResults = Object.values(result);
 
-    for (const tmpResult of Object.values(result)) {
-      this.parseResultValue(tmpResult, data);
+    for (const endpointResult of endpointResults) {
+      this.parseResultValue(endpointResult);
     }
 
-    const types = Object.keys(data);
-
-    if (types.length === 0) {
-      return;
+    if (this.updateAfterResultLoop) {
+      this.update();
     }
 
-    const documents = this.data as DocumentData;
+    this.updateAfterResultLoop = false;
+  }
 
-    for (const type of types) {
-      if (!(type in documents)) {
-        documents[type] = {};
+  private parseResultValue(value: any): any {
+    if (value === null) {
+      return null;
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((tmpValue): any => this.parseResultValue(tmpValue));
+    }
+
+    if (typeof value === "object") {
+      const tmpValue: Record<string, any> = {};
+
+      for (const key in value) {
+        tmpValue[key] = this.parseResultValue(value[key]);
       }
 
-      const tmpDocuments = data[type];
+      const isIdDocument = this.isIdDocument(value);
 
-      for (const id in tmpDocuments) {
-        documents[type][id] = tmpDocuments[id];
+      if (!isIdDocument) {
+        return tmpValue;
       }
+
+      const id = value[this.idKey];
+      const typename = value[this.typenameKey];
+
+      const documents = this.data as Record<
+        string,
+        Record<string, Record<string, any>>
+      >;
+
+      if (!(typename in documents)) {
+        documents[typename] = {};
+      }
+
+      documents[typename][id] = tmpValue;
+
+      this.updateAfterResultLoop = true;
+
+      return id;
     }
 
-    this.update();
+    return value;
   }
 }
