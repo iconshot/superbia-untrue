@@ -1,6 +1,6 @@
 {
   "name": "@superbia/untrue",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Integrate Superbia and Untrue.",
   "repository": {
     "type": "git",
@@ -8,6 +8,7 @@
   },
   "type": "module",
   "main": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",
