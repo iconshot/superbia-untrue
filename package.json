@@ -1,13 +1,13 @@
 {
   "name": "@superbia/untrue",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Integrate Superbia and Untrue.",
   "repository": {
     "type": "git",
     "url": "https://github.com/iconshot/superbia-untrue.git"
   },
   "type": "module",
-  "main": "dist/esm/index.js",
+  "main": "./dist/esm/index.js",
   "scripts": {
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc",
